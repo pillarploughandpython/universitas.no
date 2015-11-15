@@ -61,7 +61,7 @@ class KeyWordStoryMixin(models.Model):
         if not self.keywords:
             return cls.objects.none()
         scores = defaultdict(lambda: 0)
-        keywords = self.keywords.split('\n')
+        keywords = self.keywords.split('\n')[:3]
         for keyword in keywords:
             candidates = cls.objects.exclude(
                 pk=self.pk).filter(
