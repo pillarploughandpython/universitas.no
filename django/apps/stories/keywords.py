@@ -55,7 +55,7 @@ class KeyWordStoryMixin(models.Model):
         self.save(update_fields=['keywords'])
         return best
 
-    def get_related_stories(self):
+    def get_related_stories(self, limit=3):
         """figure out related stories"""
         cls = self.__class__
         if not self.keywords:
@@ -74,8 +74,8 @@ class KeyWordStoryMixin(models.Model):
                         keyword) / len(candidate.keywords))
                 )
                 scores[candidate.pk] += score
-        pks = sorted(scores.keys(), key=lambda k: scores[k], reverse=True)[:3]
-        for pk in pks:
+        pks = sorted(scores.keys(), key=lambda k: scores[k], reverse=True)
+        for pk in pks[:limit]:
             self.related_stories.add(pk)
 
 

@@ -101,6 +101,14 @@ class LinkInline(admin.TabularInline):
     fk_name = 'parent_story'
     extra = 0
 
+# class RelatedStoryInline(admin.TabularInline):
+#     # form = autocomplete_light.modelform_factory(Story, exclude=())
+#     model = Story.related_stories.through
+
+#     # model = Story
+#     # fk_name = 'related_story'
+#     extra = 0
+#     fields = ['pk', 'title', 'get_absolute_url', 'publication_date']
 
 class VideoInline(admin.TabularInline, ):
     model = StoryVideo
@@ -160,6 +168,7 @@ def make_frontpage_story(modeladmin, request, queryset):
 
 @admin.register(Story)
 class StoryAdmin(admin.ModelAdmin):
+    form = autocomplete_light.modelform_factory(Story, exclude=())
     actions = [make_frontpage_story, ]
     date_hierarchy = 'publication_date'
     actions_on_top = True
@@ -189,6 +198,8 @@ class StoryAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.CharField: {'widget': Textarea(attrs={'rows': 2, 'cols': 30})},
         models.TextField: {'widget': Textarea(attrs={'rows': 20, 'cols': 60})},
+        # models.ManyToManyField: {
+        #     'widget': autocomplete_light.widgets.MultipleChoiceWidget()},
     }
 
     fieldsets = (
@@ -196,12 +207,14 @@ class StoryAdmin(admin.ModelAdmin):
             'fields': (
                 ('title', 'kicker', 'theme_word', 'language', ),
                 ('story_type', 'publication_date', 'publication_status',),
-                ('keywords'),
             ),
         }),
         ('content', {
             'classes': ('collapsible',),
-            'fields': (('lede', 'bodytext_markup',), ),
+            'fields': (
+                ('lede', 'bodytext_markup',),
+                ('keywords', 'related_stories'),
+                ),
         }),
         ('preview', {
             'classes': ('collapse',),
@@ -216,6 +229,7 @@ class StoryAdmin(admin.ModelAdmin):
     inlines = [
         BylineInline,
         FrontpageStoryInline,
+        # RelatedStoryInline,
         ImageInline,
         VideoInline,
         PullquoteInline,
