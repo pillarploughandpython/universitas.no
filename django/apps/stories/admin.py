@@ -182,7 +182,8 @@ class StoryAdmin(admin.ModelAdmin):
     readonly_fields = [
         'legacy_html_source',
         'legacy_prodsys_source',
-        'get_html'
+        'get_html',
+        'keywords'
         ]
 
     formfield_overrides = {
@@ -195,6 +196,7 @@ class StoryAdmin(admin.ModelAdmin):
             'fields': (
                 ('title', 'kicker', 'theme_word', 'language', ),
                 ('story_type', 'publication_date', 'publication_status',),
+                ('keywords'),
             ),
         }),
         ('content', {

@@ -6,4 +6,6 @@ media
 static
 celerybeat-schedule
 celerybeat.pid
+corpus.json
+corpuscount.json
 

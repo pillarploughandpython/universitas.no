@@ -11,7 +11,7 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.utils import timezone
-from django.utils import translation
+# from django.utils import translation
 from django.db import models
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
@@ -42,6 +42,7 @@ from apps.frontpage.models import FrontpageStory
 
 from .status_codes import HTTP_STATUS_CODES
 from .bylines import clean_up_bylines
+from .keywords import KeyWordStoryMixin
 
 # Hardcoded tags for special content
 PULLQUOTE_TAG = '@quote:'
@@ -121,8 +122,8 @@ class MarkupModelMixin(object):
             try:
                 field = type(
                     self.parent)._meta.get_field(attr)
-                assert issubclass(
-                    type(field), MarkupFieldMixin), 'only MarkupFields can be html'
+                assert issubclass(type(field), MarkupFieldMixin), (
+                    'only MarkupFields can be html')
             except models.fields.FieldDoesNotExist:
                 pass
 
@@ -269,7 +270,6 @@ class TextContent(models.Model, MarkupModelMixin):
 
     def make_html(self, body=None):
         """ Create html body text from markup """
-
         # TODO: Måten artikler blir rendret på er veldig rotete. Mest mulig bør
         # flyttes fra model til template.
 
@@ -445,7 +445,7 @@ class PublishedStoryManager(models.Manager):
         hot_stories.update(hot_count=(models.F('hot_count') - 1) * factor)
 
 
-class Story(TextContent, TimeStampedModel, Edit_url_mixin):
+class Story(KeyWordStoryMixin, TextContent, TimeStampedModel, Edit_url_mixin):
 
     """ An article or story in the newspaper. """
 
@@ -622,6 +622,7 @@ class Story(TextContent, TimeStampedModel, Edit_url_mixin):
         pri += len(self.bodytext_markup) // 1000
         return min(12, pri)
 
+
     def visit_page(self, request):
         """ Check if visit looks like a human and update hit count """
         if not self.publication_status == self.STATUS_PUBLISHED:
@@ -745,7 +746,7 @@ class Story(TextContent, TimeStampedModel, Edit_url_mixin):
 
     def clean(self):
         """ Clean user input and populate fields """
-        if not self.title and not '@headline:' in self.bodytext_markup:
+        if not self.title and '@headline:' not in self.bodytext_markup:
             self.bodytext_markup = self.bodytext_markup.replace(
                 '@tit:',
                 '@headline:',
@@ -782,9 +783,7 @@ class Story(TextContent, TimeStampedModel, Edit_url_mixin):
         return new_element._block_append(tag, content)
 
     def place_all_inline_elements(self):
-        """ Insert inline elements into the
-        bodytext according to heuristics. """
-
+        """Insert inline elements into the bodytext according to heuristics."""
         def _main(self=self, body=self.bodytext_markup):
 
             # remove tags:
@@ -975,7 +974,7 @@ class Story(TextContent, TimeStampedModel, Edit_url_mixin):
                                 elements_changed = True
                                 element.index = this_index
                                 element.top = False
-                        if not this_index in replace:
+                        if this_index not in replace:
                             replace.append(this_index)
                         else:
                             pass
@@ -1230,7 +1229,6 @@ class StoryMedia(StoryElement, MarkupModelMixin):
 
     def get_height(self, width, height):
         """ Calculate pixel height based on builtin ratio """
-
         if self.aspect_ratio == self.DEFAULT_RATIO:
             height = height
         elif self.aspect_ratio == self.ORIGINAL_RATIO:
@@ -1342,7 +1340,7 @@ class StoryVideo(StoryMedia):
         # url formats:
         # https://www.youtube.com/watch?v=roHl3PJsZPk
         # http://youtu.be/roHl3PJsZPk
-            # http://vimeo.com/105149174
+        # http://vimeo.com/105149174
 
         def check_link(url, method='head', timeout=2):
             """ Does a http request to check the status of the url. """
@@ -1617,9 +1615,6 @@ class InlineLink(TimeStampedModel):
     @classmethod
     def convert_html_links(cls, bodytext, return_html=False):
         """ convert <a href=""> to other tag """
-        # if '&' in bodytext:
-            # find = re.findall(r'.{,20}&.{,20}', bodytext)
-            # logger.debug(find)
         soup = BeautifulSoup(bodytext)
         for link in soup.find_all('a'):
             href = link.get('href') or ''
