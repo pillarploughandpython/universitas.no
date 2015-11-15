@@ -29,6 +29,22 @@ def header_image(context):
     context['img_size'] = '{}x{}'.format(width, height)
     return context
 
+@register.inclusion_tag('_related_story.html', takes_context=False)
+def related_story(story):
+    # story = context['related_story']
+    context = {}
+    try:
+        image = story.images().top()[0]
+        context['imagefile'] = image.storyimage.imagefile
+    except IndexError:
+        pass
+    # import ipdb; ipdb.set_trace()
+    context['headline'] = story.title
+    context['lede'] = story.lede
+    context['url'] = story.get_absolute_url()
+    return context
+
+
 
 @register.inclusion_tag('_inline_images.html', takes_context=True)
 def inline_storyimage(context, argument_string):

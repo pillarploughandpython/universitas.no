@@ -1,0 +1,24 @@
+{% load parse_markup %}
+{% load thumbnail %}
+<div class="related-story row">
+  <a href="{{ url }}">
+  {% if imagefile %}
+  <div class="small-4 columns">
+      {% thumbnail imagefile.source_file "200x300" crop=imagefile.get_crop as image %}
+        <img src="{{ image.url }}" alt="{{ item.story.headline|strip_tags }}"></img>
+      {% endthumbnail %}
+  </div>
+  <div class="small-8 columns">
+  {% else %}
+  <div class="small-12 columns">
+  {% endif %}
+  {% if kicker %}
+    <h3 class="kicker">{{ kicker|inline_tags }}</h3>
+  {% endif %}
+    <h2 class="headline ">
+      {{ headline|inline_tags }}
+    </h2>
+    <p class="lede">{{ lede|inline_tags }}</p>
+  </div>
+  </a>
+</div>

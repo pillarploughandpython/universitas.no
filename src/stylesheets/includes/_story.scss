@@ -58,6 +58,23 @@
   display: inline-block;
 }
 
+.related-stories {
+  .headline {
+    font-size: 1em;
+    color: $medium-grey;
+  }
+  .kicker {
+    font-size: .8em;
+  }
+  .lede {
+    @extend %small-text;
+    color: $dark-grey;
+    &:link {
+      color: $dark-grey;
+    }
+  }
+}
+
 #story{
   border-bottom: $separator-line;
 
