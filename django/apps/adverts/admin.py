@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Admin pages for Adverts"""
 
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _

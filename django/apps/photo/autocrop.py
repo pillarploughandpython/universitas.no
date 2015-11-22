@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ Face and feature detection with opencv. """
 
 import numpy
@@ -128,24 +129,34 @@ class AutoCropImage(models.Model):
         def detect_faces(cv2img,):
             """ Detects faces in image and adjust cropping. """
             # http://docs.opencv.org/trunk/modules/objdetect/doc/cascade_classification.html
-            # cv2.CascadeClassifier.detectMultiScale(image[, scaleFactor[, minNeighbors[, flags[, minSize[, maxSize]]]]])
-            # cascade – Haar classifier cascade (OpenCV 1.x API only). It can be loaded from XML or YAML file using Load(). When the cascade is not needed anymore, release it using cvReleaseHaarClassifierCascade(&cascade).
-            # image – Matrix of the type CV_8U containing an image where objects are detected.
-            # objects – Vector of rectangles where each rectangle contains the detected object, the rectangles may be partially outside the original image.
-            # numDetections – Vector of detection numbers for the corresponding objects. An object’s number of detections is the number of neighboring positively classified rectangles that were joined together to form the object.
-            # scaleFactor – Parameter specifying how much the image size is reduced at each image scale.
-            # minNeighbors – Parameter specifying how many neighbors each candidate rectangle should have to retain it.
-            # flags – Parameter with the same meaning for an old cascade as in the function cvHaarDetectObjects. It is not used for a new cascade.
-            # minSize – Minimum possible object size. Objects smaller than that are ignored.
-            # maxSize – Maximum possible object size. Objects larger than that are ignored.
-            # outputRejectLevels – Boolean. If True, it returns the
-            # rejectLevels and levelWeights. Default value is False.
+            # cv2.CascadeClassifier.detectMultiScale(image[, scaleFactor[,
+            # minNeighbors[, flags[, minSize[, maxSize]]]]]) cascade – Haar
+            # classifier cascade (OpenCV 1.x API only). It can be loaded from
+            # XML or YAML file using Load(). When the cascade is not needed
+            # anymore, release it using
+            # cvReleaseHaarClassifierCascade(&cascade).  image – Matrix of the
+            # type CV_8U containing an image where objects are detected.
+            # objects – Vector of rectangles where each rectangle contains the
+            # detected object, the rectangles may be partially outside the
+            # original image.  numDetections – Vector of detection numbers for
+            # the corresponding objects. An object’s number of detections is
+            # the number of neighboring positively classified rectangles that
+            # were joined together to form the object.  scaleFactor – Parameter
+            # specifying how much the image size is reduced at each image
+            # scale.  minNeighbors – Parameter specifying how many neighbors
+            # each candidate rectangle should have to retain it.  flags –
+            # Parameter with the same meaning for an old cascade as in the
+            # function cvHaarDetectObjects. It is not used for a new cascade.
+            # minSize – Minimum possible object size. Objects smaller than that
+            # are ignored.  maxSize – Maximum possible object size. Objects
+            # larger than that are ignored.  outputRejectLevels – Boolean. If
+            # True, it returns the rejectLevels and levelWeights. Default value
+            # is False.
 
             face_cascade = cv2.CascadeClassifier(CASCADE_FILE)
-            # faces = face_cascade.detectMultiScale(cv2img,)
-            faces = face_cascade.detectMultiScale(cv2img, minSize=(50,50), minNeighbors=10)
+            faces = face_cascade.detectMultiScale(
+                    cv2img, minSize=(50,50), minNeighbors=10)
 
-            # faces = sorted(faces, reverse=True, key=lambda l, t, w, h: w*h)[:max_matches]
             horizontal_faces, vertical_faces = [], []
             box = {}
             for (face_left, face_top, face_width, face_height) in faces:
@@ -182,15 +193,43 @@ class AutoCropImage(models.Model):
         def detect_features(cv2img):
             """ Detect features in the image to determine cropping """
             # http://docs.opencv.org/trunk/modules/imgproc/doc/feature_detection.html
-            # cv2.goodFeaturesToTrack(image, maxCorners, qualityLevel, minDistance[, corners[, mask[, blockSize[, useHarrisDetector[, k]]]]]) → corners
-                # image – Input 8-bit or floating-point 32-bit, single-channel image.
+            # cv2.goodFeaturesToTrack(image, maxCorners, qualityLevel,
+            # minDistance[, corners[, mask[, blockSize[, useHarrisDetector[,
+            # k]]]]]) → corners
+
+                # image – Input 8-bit or floating-point 32-bit, single-channel
+                # image.
+
                 # corners – Output vector of detected corners.
-                # maxCorners – Maximum number of corners to return. If there are more corners than are found, the strongest of them is returned.
-                # qualityLevel – Parameter characterizing the minimal accepted quality of image corners. The parameter value is multiplied by the best corner quality measure, which is the minimal eigenvalue (see cornerMinEigenVal() ) or the Harris function response (see cornerHarris() ). The corners with the quality measure less than the product are rejected. For example, if the best corner has the quality measure = 1500, and the qualityLevel=0.01 , then all the corners with the quality measure less than 15 are rejected.
-                # minDistance – Minimum possible Euclidean distance between the returned corners.
-                # mask – Optional region of interest. If the image is not empty (it needs to have the type CV_8UC1 and the same size as image ), it specifies the region in which the corners are detected.
-                # blockSize – Size of an average block for computing a derivative covariation matrix over each pixel neighborhood. See cornerEigenValsAndVecs() .
-                # useHarrisDetector – Parameter indicating whether to use a Harris detector (see cornerHarris()) or cornerMinEigenVal().
+
+                # maxCorners – Maximum number of corners to return. If there
+                # are more corners than are found, the strongest of them is
+                # returned.
+
+                # qualityLevel – Parameter characterizing the minimal accepted
+                # quality of image corners. The parameter value is multiplied
+                # by the best corner quality measure, which is the minimal
+                # eigenvalue (see cornerMinEigenVal() ) or the Harris function
+                # response (see cornerHarris() ). The corners with the quality
+                # measure less than the product are rejected. For example, if
+                # the best corner has the quality measure = 1500, and the
+                # qualityLevel=0.01 , then all the corners with the quality
+                # measure less than 15 are rejected.
+
+                # minDistance – Minimum possible Euclidean distance between the
+                # returned corners.
+
+                # mask – Optional region of interest. If the image is not empty
+                # (it needs to have the type CV_8UC1 and the same size as image
+                # ), it specifies the region in which the corners are detected.
+
+                # blockSize – Size of an average block for computing a
+                # derivative covariation matrix over each pixel neighborhood.
+                # See cornerEigenValsAndVecs() .
+
+                # useHarrisDetector – Parameter indicating whether to use a
+                # Harris detector (see cornerHarris()) or cornerMinEigenVal().
+
                 # k – Free parameter of the Harris detector.
 
             corners = cv2.goodFeaturesToTrack(cv2img, 25, 0.01, 10)
