@@ -6,4 +6,4 @@ media
 static
 celerybeat-schedule
 celerybeat.pid
-
+tags

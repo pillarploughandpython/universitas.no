@@ -300,4 +300,9 @@ class Stint(models.Model):
     )
 
     def __str__(self):
-        return '{} {}'.format(self.position, self.contributor)
+        return '{} {} ({} – {})'.format(
+            self.position,
+            self.contributor,
+            self.start_date,
+            self.end_date
+        )
