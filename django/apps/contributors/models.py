@@ -226,6 +226,13 @@ class Contributor(models.Model):
 
         return [contributor]
 
+    def active_stints(self, when=None):
+        if when is None:
+            when = timezone.now()
+        stints = self.stint_set.filter(
+            start_date__lte=when, end_date__gte=when)
+        return stints
+
 
 # class ContactInfo(models.Model):
 

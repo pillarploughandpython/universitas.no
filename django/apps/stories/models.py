@@ -1790,36 +1790,11 @@ class Byline(models.Model):
             if len(initials) == 1:
                 initials = full_name.upper()
 
-        except (AssertionError, AttributeError, ) as e:
-            # Malformed byline
-            p_org = w_org = ' -- '
-            if story.legacy_prodsys_source:
-                dump = story.legacy_prodsys_source
-                tekst = json.loads(dump)[0]['fields']['tekst']
-                p_org = needle_in_haystack(full_byline, tekst)
-            if story.legacy_html_source:
-                dump = story.legacy_html_source
-                w_org = json.loads(dump)[0]['fields']['byline']
+        except (AssertionError, AttributeError, ) as error:
+            msg = 'byline: {}, error: {}'.format(full_byline, error)
+            broken_bylines_in_story(story, msg)
+            return
 
-            warning = ((
-                'Malformed byline: "{byline}" error: {error} id: {id}'
-                ' p_id: {p_id}\n{p_org} | {w_org} ').format(
-                id=story.id,
-                p_id=story.prodsak_id,
-                # story=story,
-                byline=full_byline,
-                error=e,
-                p_org=p_org,
-                w_org=w_org,
-            ))
-            logger.warn(warning)
-            story.comment += warning
-            story.publication_status = Story.STATUS_ERROR
-
-            full_name = 'Nomen Nescio'
-            title = full_byline
-            initials = 'XX'
-            credit = '???'
 
         for choice in cls.CREDIT_CHOICES:
             # Find correct credit.
@@ -1836,20 +1811,54 @@ class Byline(models.Model):
         else:
             credit = cls.DEFAULT_CREDIT
 
-        contributors = Contributor.get_or_create(
-            full_name,
-            initials
+        contributor = Contributor.get_or_create(
+            full_name, initials)[0]
+
+        new_byline = cls(
+            story=story,
+            credit=credit,
+            title=title[:200],
+            contributor=contributor,
         )
+        new_byline.save()
 
-        for contributor in contributors:
-            new_byline = cls(
-                story=story,
-                credit=credit,
-                title=title[:200],
-                contributor=contributor,
-            )
-            new_byline.save()
+def broken_bylines_in_story(story, error=None):
+    # Malformed byline
+    p_org = w_org = ''
+    if story.legacy_prodsys_source:
+        p_org = prodsys_bylines(story)
 
+    if story.legacy_html_source:
+        dump = story.legacy_html_source
+        w_org = json.loads(dump)[0]['fields']['byline']
+
+    if error:
+        warning = ((
+            'Malformed byline: {error} id: {id}'
+            ' p_id: {p_id}\n{p_org} | {w_org} ').format(
+            id=story.id,
+            p_id=story.prodsak_id,
+            error=error,
+            p_org=p_org,
+            w_org=w_org,
+        ))
+        logger.warn(warning)
+    extra_content = '\n#bl: {} {}'.format(w_org, p_org)
+    story.publication_status = Story.STATUS_ERROR
+    if extra_content not in story.bodytext_markup:
+        story.bodytext_markup += extra_content
+    story.byline_set.all().delete()
+
+def prodsys_bylines(story):
+    """find bylines in prodsys source"""
+    p_org = ''
+    if story.legacy_prodsys_source:
+        dump = story.legacy_prodsys_source
+        tekst = json.loads(dump)[0]['fields']['tekst']
+        bylines = re.findall(r'@bl:([^@]*)', tekst, flags=re.M)
+        p_org = '\n'.join(bylines).replace('•', '\n').replace('\t', ':')
+        p_org = '\n'.join(line.strip() for line in p_org.splitlines())
+    return p_org
 
 def needle_in_haystack(needle, haystack):
     """ strips away all spaces and puctuations before comparing. """

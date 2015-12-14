@@ -13,6 +13,7 @@ import autocomplete_light
 from .models import Contributor, Position, Stint
 from . import tasks
 from apps.stories.admin import BylineInline
+from apps.stories.models import broken_bylines_in_story
 
 
 def byline_image(obj):
@@ -34,6 +35,11 @@ def update_contributors(modeladmin, request, queryset):
 
 def mark_as_invalid(modeladmin, request, queryset):
     mark_as_invalid.short_description = _('mark as invalid')
+    for contributor in queryset:
+        for story in contributor.story_set.all():
+            broken_bylines_in_story(story)
+            story.save()
+        contributor.delete()
 
 @admin.register(Contributor)
 class ContributorAdmin(admin.ModelAdmin):
