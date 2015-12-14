@@ -6,6 +6,7 @@ import re
 import difflib
 import json
 import logging
+from collections import OrderedDict
 
 # Django core
 from django.utils.translation import ugettext_lazy as _
@@ -72,7 +73,8 @@ class MarkupFieldMixin(object):
             error_message = '{warning} {tags}'.format(
                 warning=_('HTML tags found in text: '), tags=soup.find_all())
             raise ValidationError(error_message)
-        value = Alias.objects.replace(content=value, timing=Alias.TIMING_IMPORT)
+        value = Alias.objects.replace(
+            content=value, timing=Alias.TIMING_IMPORT)
         value = Alias.objects.replace(content=value, timing=Alias.TIMING_EXTRA)
         return value
 
@@ -351,7 +353,8 @@ class TextContent(models.Model, MarkupModelMixin):
             # various kinds of block (paragraph) level tags
             # that are in use. Actions are "_block_append", "_block_new" and
             # "_block_drop".
-            action = getattr(target, '_block_{func}'.format(func=function_name))
+            action = getattr(
+                target, '_block_{func}'.format(func=function_name))
             # do action on
             new_target = action(tag, text_content, target_field)
             # new target could be newly created object or a parent element.
@@ -377,7 +380,8 @@ class TextContent(models.Model, MarkupModelMixin):
                 tag=tag,
                 added_content=content,
             ).strip()
-            actual_field = self.__class__._meta.get_field_by_name(modelfield)[0]
+            actual_field = self.__class__._meta.get_field_by_name(modelfield)[
+                0]
             if actual_field.max_length:
                 new_content = new_content[:actual_field.max_length]
             setattr(self, modelfield, new_content)
@@ -418,7 +422,41 @@ class StoryQuerySet(models.QuerySet):
         return self.filter(frontpagestory__placements=frontpage)
 
 
+    def dump_bylines(self, filename='bylines.json'):
+        bylines = OrderedDict()
+        for story in self.order_by('pk'):
+            bylines[story.pk] = []
+            for byline in story.byline_set.order_by('ordering', 'pk'):
+                bylines[story.pk].append(
+                    '{credit}: {name}{description}'.format(
+                        credit=byline.credit,
+                        name=byline.contributor.display_name,
+                        description='' if not byline.title else ', %s' % byline.title,
+                    ).replace('by: ', '')
+                )
+
+        with open(filename, 'w') as fp:
+            json.dump(bylines, fp, indent=2, ensure_ascii=False)
+
+
 class PublishedStoryManager(models.Manager):
+
+    def load_bylines(self, filename='bylines.json'):
+        """Load bylines"""
+        with open(filename, 'r') as fp:
+            fixed = json.load(fp)
+
+        for key in sorted(fixed.keys(), key=int):
+            story = self.get(pk=int(key))
+            fixed_bl = fixed[key]
+            story.byline_set.all().delete()
+            new_bylines = '\n' + \
+                '\n'.join('@bl:%s' % byline for byline in fixed_bl if byline)
+            story.bodytext_markup += new_bylines
+            story.publication_status = Story.STATUS_PUBLISHED
+            story.full_clean()
+            story.save()
+            logger.debug('updated bylines: %s %s' % (story.pk, new_bylines))
 
     def get_queryset(self):
         return StoryQuerySet(self.model, using=self._db)
@@ -1342,7 +1380,7 @@ class StoryVideo(StoryMedia):
         # url formats:
         # https://www.youtube.com/watch?v=roHl3PJsZPk
         # http://youtu.be/roHl3PJsZPk
-            # http://vimeo.com/105149174
+        # http://vimeo.com/105149174
 
         def check_link(url, method='head', timeout=2):
             """ Does a http request to check the status of the url. """
@@ -1482,7 +1520,8 @@ class InlineLink(TimeStampedModel):
     def get_html(self):
         """ get <a> html tag for the link """
         pattern = self.html_pattern
-        html = pattern.format(text=self.text, href=self.link, alt=self.alt_text)
+        html = pattern.format(
+            text=self.text, href=self.link, alt=self.alt_text)
         return mark_safe(html)
 
     get_html.allow_tags = True
@@ -1505,7 +1544,8 @@ class InlineLink(TimeStampedModel):
 
         if not self.linked_story:
             try:
-                match = re.search(r'universitas.no/.+?/(?P<id>\d+)/', self.href)
+                match = re.search(
+                    r'universitas.no/.+?/(?P<id>\d+)/', self.href)
                 story_id = int(match.group('id'))
                 self.linked_story = Story.objects.get(pk=story_id)
             except (AttributeError, ObjectDoesNotExist):
@@ -1618,8 +1658,8 @@ class InlineLink(TimeStampedModel):
     def convert_html_links(cls, bodytext, return_html=False):
         """ convert <a href=""> to other tag """
         # if '&' in bodytext:
-            # find = re.findall(r'.{,20}&.{,20}', bodytext)
-            # logger.debug(find)
+        # find = re.findall(r'.{,20}&.{,20}', bodytext)
+        # logger.debug(find)
         soup = BeautifulSoup(bodytext)
         for link in soup.find_all('a'):
             href = link.get('href') or ''
