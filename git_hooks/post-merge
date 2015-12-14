@@ -2,12 +2,18 @@
 # git hook to run a command after `git pull` if a specified file was changed
 
 # changed_files="$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD)"
-changed_files="$(find . -mmin -5)" # changed in the last 5 minutes
+
+changed_files=$(find . -maxdepth 1 -mmin -5)
+# changed in the last 5 minutes
 
 not_changed() {
-  echo "$changed_files" | grep --quiet "$1" && return 1 || echo "$1 has not changed"
+  echo "$changed_files" | grep --quiet "$1"\
+      && echo "$1 changed" &&  return 1\
+      || echo "$1 has not changed" && return 0
 }
 
 not_changed package.json || npm install
 not_changed bower.json || bower install
-not_changed requirements.txt || pip install -r requirements.txt
+not_changed requirements.txt || pip install -qr requirements.txt
+
+git_hooks/ctags >/dev/null 2>&1 & 
