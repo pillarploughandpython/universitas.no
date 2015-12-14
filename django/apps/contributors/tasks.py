@@ -4,6 +4,9 @@ from collections import Counter
 import logging
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
+
+from celery import task
+
 from .models import Position, Contributor, Stint
 
 logger = logging.getLogger(__name__)
@@ -29,7 +32,7 @@ class Contributions:
     @property
     def is_external(self):
         return self.in_house_bylines.count() == 0
-
+
     @property
     def stints(self):
         return Stint.objects.filter(contributor=self.contributor)
@@ -75,9 +78,12 @@ class Contributions:
             self.contributor.save()
         return status
 
-def update_contributor_statuses(queryset=None):
-    if queryset == None:
+@task
+def update_contributor_statuses(pks=None):
+    if pks is None:
         queryset = Contributor.objects.all()
+    else:
+        queryset = Contributor.objects.filter(pk__in=pks)
     for contributor in queryset:
         contr = Contributions(contributor)
         contr.get_status(save=True)
@@ -88,6 +94,7 @@ def update_contributor_statuses(queryset=None):
         )
         logger.debug(msg)
 
+@task
 def update_contributor_stints(queryset=None):
     if queryset == None:
         queryset = Contributor.objects.all()

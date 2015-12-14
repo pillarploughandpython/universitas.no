@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 import autocomplete_light
 
 from .models import Contributor, Position, Stint
+from . import tasks
 from apps.stories.admin import BylineInline
 
 
@@ -25,8 +26,19 @@ class StintInline(admin.TabularInline,):
     fields = ['position', 'start_date', 'end_date']
     extra = 1
 
+def update_contributors(modeladmin, request, queryset):
+    update_contributors.short_description = _('update contributors')
+    pks = list(queryset.values_list('pk', flat=True))
+    tasks.update_contributor_stints.delay(pks)
+    tasks.update_contributor_statuses.delay(pks)
+
+def mark_as_invalid(modeladmin, request, queryset):
+    mark_as_invalid.short_description = _('mark as invalid')
+
 @admin.register(Contributor)
 class ContributorAdmin(admin.ModelAdmin):
+
+    actions = [update_contributors, mark_as_invalid]
 
     form = autocomplete_light.modelform_factory(
         Contributor,
