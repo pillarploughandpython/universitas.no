@@ -95,9 +95,11 @@ def update_contributor_statuses(pks=None):
         logger.debug(msg)
 
 @task
-def update_contributor_stints(queryset=None):
-    if queryset == None:
+def update_contributor_stints(pks=None):
+    if pks is None:
         queryset = Contributor.objects.all()
+    else:
+        queryset = Contributor.objects.filter(pk__in=pks)
     for contributor in queryset:
         contr = Contributions(contributor)
         contr.create_stints()
