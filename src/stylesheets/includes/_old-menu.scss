@@ -19,6 +19,7 @@ $fontsize: $menu-height - $menu-padding * 2;
 
 %onscreen {
   top: $menu-height;
+  z-index: -10;
 }
 
 %offscreen {
@@ -31,11 +32,11 @@ $fontsize: $menu-height - $menu-padding * 2;
   z-index: -100;
   top: ($panel-height + $menu-height) * -1;
   height: $panel-height;
-  &:hover{
+  &:hover, .opened & {
     @extend %onscreen;
-    z-index: -10;
   }
 }
+
 body > main{
   margin-top: $menu-height + $menu-padding;
 }

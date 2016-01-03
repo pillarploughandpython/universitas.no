@@ -1,0 +1,25 @@
+{% extends "base-template.html" %}
+{% load cache %}
+{% load universitas_menu %}
+{% block body %}
+  <header id="sticky-top-menu" class="fixedsticky">
+    {% cache 60 top-menu %}
+    {% old_menu "" %}
+    {% endcache %}
+  </header>
+  <main>
+    <div class="content-wrapper">
+      {% block columns %}{% endblock %}
+      {% block content %}
+      <p>Main content of page</p>
+      {% endblock content %}
+    </div>
+  </main>
+  {% block footer %}
+  <footer>
+    <div class="row">
+      <div class="col medium-9 small-12 large-4"></div>
+    </div>
+  </footer>
+  {% endblock footer %}
+{% endblock body %}
