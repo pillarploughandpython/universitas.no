@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "run python tests"
+py.test
+echo "update database model schema graph"
+# ./scripts/graph-models.sh
+# echo "update translations"
+# ./scripts/translation.sh

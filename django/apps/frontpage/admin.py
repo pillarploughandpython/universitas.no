@@ -9,13 +9,14 @@ from .models import StoryModule, FrontpageStory, StaticModule
 from apps.photo.admin import ThumbAdmin
 import autocomplete_light
 from sorl.thumbnail.admin import AdminImageMixin
+from django.utils.safestring import mark_safe
+from django.template import Context, Template
 
 
 class StoryModuleInline(admin.TabularInline):
     model = StoryModule
     fields = ('position', 'columns', 'height',),
     extra = 0
-
 
 @admin.register(FrontpageStory)
 class FrontpageStoryAdmin(AdminImageMixin, ThumbAdmin, admin.ModelAdmin):
@@ -31,7 +32,7 @@ class FrontpageStoryAdmin(AdminImageMixin, ThumbAdmin, admin.ModelAdmin):
         'headline',
         'lede',
         # 'imagefile',
-        'story',
+        'parent_story',
         'thumbnail',
         # 'placements',
     )
@@ -49,6 +50,16 @@ class FrontpageStoryAdmin(AdminImageMixin, ThumbAdmin, admin.ModelAdmin):
         'headline',
         'kicker',
     )
+
+    def parent_story(self, instance):
+        template = Template(
+            '<div class="parent story">'
+            '<a href="{{story.get_edit_url}}">({{ story.pk }})</a> '
+            '<a href="{{story.get_absolute_url}}">{{ story.title }}</a>'
+            '</div>'
+        )
+        context = Context({'story':instance.story})
+        return mark_safe(template.render(context))
 
 
 @admin.register(StoryModule)

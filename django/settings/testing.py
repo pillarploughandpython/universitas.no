@@ -1,23 +1,26 @@
 """ Settings for running tests """
 from .base import *
-import warnings
-
-# IN-MEMORY TEST DATABASE
+import logging
+logging.disable(logging.CRITICAL)
+PASSWORD_HASHERS = (
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+)
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-        "USER": "",
-        "PASSWORD": "",
-        "HOST": "",
-        "PORT": "",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': environment_variable('DB_NAME'),
+        'USER': environment_variable('DB_USER'),
+        'PASSWORD': environment_variable('DB_PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': '5432',       # Set to empty string for default.
     },
+    'prodsys': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'PASSWORD': environment_variable('DB_PASSWORD'),
+        'NAME': 'prodsys_' + environment_variable('DB_NAME'),
+        'USER': environment_variable('DB_USER'),
+        'HOST': 'localhost',
+        'PORT': '5432',       # Set to empty string for default.
+    }
 }
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# ignore the following error when using ipython:
-#/django/db/backends/sqlite3/base.py:50: RuntimeWarning:
-# SQLite received a naive datetime (2012-11-02 11:20:15.156506) while time zone support is active.
-
-warnings.filterwarnings("ignore", category=RuntimeWarning, module='django.db.backends.sqlite3.base', lineno=63)
+# EMAIL_BACKEND = django.core.mail.backends.

@@ -1,7 +1,8 @@
 from sorl.thumbnail.engines.convert_engine import Engine as GraphicsMagickConvertEngine
 import re
 import logging
-from PIL import Image
+from io import BytesIO
+from PIL import Image, ImageDraw
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +55,16 @@ class CloseCropEngine(GraphicsMagickConvertEngine):
             return super().write(image, options, thumbnail)
         except Exception:
             logger.exception('could not write image: %s' % image)
-            raise
+            self.error_image(image)
+            return super().write(image, options, thumbnail)
+
+    def error_image(self, image):
+        size = image['size']
+        im = Image.new(size=size, mode='RGB', color='white')
+        draw = ImageDraw.Draw(im)
+        draw.line([0, 0, size[0], size[1]], fill='red', width=5)
+        draw.line([size[0], 0, 0, size[1]], fill='red', width=5)
+        im.save(image['source'], 'jpeg')
 
     def close_crop(self, image, geometry, options):
         """ crop it close """
