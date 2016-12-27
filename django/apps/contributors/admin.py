@@ -8,7 +8,7 @@ from django.template import Context, Template
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-import autocomplete_light
+from autocomplete_light.forms import modelform_factory
 
 from .models import Contributor, Position, Stint
 from apps.stories.admin import BylineInline
@@ -20,15 +20,17 @@ def byline_image(obj):
     html = t.render(Context(d))
     return mark_safe(html)
 
+
 class StintInline(admin.TabularInline,):
     model = Stint
     fields = ['position', 'start_date', 'end_date']
     extra = 1
 
+
 @admin.register(Contributor)
 class ContributorAdmin(admin.ModelAdmin):
 
-    form = autocomplete_light.modelform_factory(
+    form = modelform_factory(
         Contributor,
         exclude=()
     )
@@ -42,7 +44,6 @@ class ContributorAdmin(admin.ModelAdmin):
     )
 
     list_editable = (
-        'display_name',
         'verified',
     )
 
@@ -66,7 +67,6 @@ class PositionAdmin(admin.ModelAdmin):
         else:
             return str(len(active))
 
-
     def groups_list(self, instance):
         return ', '.join(str(group) for group in instance.groups.all())
 
@@ -74,13 +74,13 @@ class PositionAdmin(admin.ModelAdmin):
         'title',
         'active_now',
         'groups_list',
-        ]
+    ]
 
 
 @admin.register(Stint)
 class StintAdmin(admin.ModelAdmin):
 
-    form = autocomplete_light.modelform_factory(
+    form = modelform_factory(
         Stint,
         exclude=()
     )
@@ -90,10 +90,10 @@ class StintAdmin(admin.ModelAdmin):
         'position',
         'start_date',
         'end_date',
-        )
+    )
 
     list_editable = (
         'position',
         'start_date',
         'end_date',
-        )
+    )

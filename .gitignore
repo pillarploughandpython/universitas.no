@@ -1,4 +1,5 @@
 node_modules/
+.cache/
 build/
 bin/*universitas_no.sh
 bin/postactivate
@@ -8,4 +9,4 @@ celerybeat-schedule
 celerybeat.pid
 corpus.json
 corpuscount.json
-
+tags

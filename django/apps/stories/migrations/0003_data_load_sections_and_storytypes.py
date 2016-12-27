@@ -1,24 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
+from pathlib import Path
 from django.db import migrations
-from django.core.management import call_command
-import os
+from utils.migration_helpers import unload_fixture, load_fixture
 
-fixture_dir = os.path.dirname(__file__)
-fixture_filename = 'sections_and_story_types.json'
-
-
-def load_fixture(apps, schema_editor):
-    """Load fixtures for sections and story types"""
-    def load_fixture(apps, schema_editor):
-        call_command('loaddata', fixture_filename, app_label='stories')
-
-
-def unload_fixture(apps, schema_editor):
-    """Brutally deleting all entries for this model..."""
-    for modelname in ('Section', 'StoryType'):
-        model = apps.get_model('stories', modelname)
-        model.objects.all().delete()
+fixture = Path(__file__).parent / 'sections_and_story_types.json'
 
 
 class Migration(migrations.Migration):
@@ -29,7 +15,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            load_fixture,
-            reverse_code=unload_fixture,
+            code=load_fixture(str(fixture)),
+            reverse_code=unload_fixture('stories', ['Section', 'StoryType']),
         ),
     ]

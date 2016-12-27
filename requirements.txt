@@ -10,6 +10,9 @@ django-debug-toolbar
 django-extensions
 django-model-utils
 django-redis-cache
+pytest
+pytest-xdist
+django-pytest
 gunicorn
 hiredis
 ipdb
@@ -30,7 +33,7 @@ six
 sqlparse
 tornado
 sorl-thumbnail
-django-autocomplete-light
+django-autocomplete-light>=2.2,<3.0
 diff-match-patch
 awesome-slugify
 fuzzywuzzy
@@ -44,3 +47,5 @@ certifi==2015.04.28
 ptpython
 celery
 nltk
+snakeviz
+django-webpack-loader==0.4.1
