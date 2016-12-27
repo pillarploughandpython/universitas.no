@@ -168,7 +168,7 @@ def make_frontpage_story(modeladmin, request, queryset):
 
 @admin.register(Story)
 class StoryAdmin(admin.ModelAdmin):
-    form = autocomplete_light.modelform_factory(Story, exclude=())
+    form = modelform_factory(Story, exclude=())
     actions = [make_frontpage_story, ]
     date_hierarchy = 'publication_date'
     actions_on_top = True
